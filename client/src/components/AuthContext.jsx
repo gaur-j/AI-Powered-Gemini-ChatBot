@@ -8,7 +8,7 @@ export const AuthContext = createContext();
 
 const AuthContextProvider = ({ children }) => {
   const navigate = useNavigate();
-  const backendUrl = "http://localhost:5000";
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const [token, setToken] = useState(cookie.get("token") || null);
   const [user, setUser] = useState(null);
