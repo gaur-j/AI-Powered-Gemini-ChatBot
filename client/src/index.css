@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  background: linear-gradient(to right, #375534, #0f2a1d);
+  background: #0e0e10;
 }
 
 ::-webkit-scrollbar {

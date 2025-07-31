@@ -2,6 +2,11 @@ import { useContext, useState } from "react";
 import { AuthContext } from "../components/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 import { FaApple, FaFacebook, FaGoogle } from "react-icons/fa";
+import HoverCard from "@darenft/react-3d-hover-card";
+import "@darenft/react-3d-hover-card/dist/style.css";
+import Back from "../assets/anime.jpg";
+import Microsoft from "../assets/microsoft.png";
+import Google from "../assets/google.png";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -27,59 +32,90 @@ const Register = () => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row items-center justify-center min-h-screen text-white p-6">
-      <div className="flex-1 max-w-md mx-4 sm:mx-auto p-4 border border-gray-500 rounded-x1">
-        <div className="rounded-lg p-6 shadow-lg">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              type="text"
-              name="username"
-              onChange={handleChange}
-              placeholder="username"
-              value={userFormData.username}
-              className="w-full p-3 rounded-lg bg-white text-gray-900 focus:ring focus:ring-blue-500"
+    <div className="flex flex-col lg:flex-row items-center justify-center min-h-screen translate text-white px-4">
+      {/* 3D Image Hover */}
+      <div className="hidden lg:flex w-1/2 items-center justify-center transition">
+        <HoverCard scaleFactor={1.4}>
+          <img
+            src={Back}
+            alt="Logo Art"
+            className="max-w-lg border rounded-lg border-gray-50 shadow-xl"
+          />
+        </HoverCard>
+      </div>
+
+      <div className="w-full max-w-md bg-[#1b1c1f] p-6 rounded-xl shadow-2xl">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            name="email"
+            value={userFormData.username}
+            onChange={handleChange}
+            placeholder="Username, Email or Phone"
+            className="w-full p-3 rounded bg-[#2a2b2e] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+          <input
+            type="text"
+            name="email"
+            value={userFormData.email}
+            placeholder="email"
+            className="w-full p-3 rounded bg-[#2a2b2e] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+          <input
+            type="password"
+            name="password"
+            value={userFormData.password}
+            onChange={handleChange}
+            placeholder="Password"
+            className="w-full p-3 rounded bg-[#2a2b2e] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+          <button
+            type="submit"
+            className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition"
+          >
+            Sign Up
+          </button>
+        </form>
+
+        {/* Divider */}
+        <div className="flex items-center my-6">
+          <hr className="flex-1 border-gray-700" />
+          <span className="px-3 text-sm text-gray-500">OR</span>
+          <hr className="flex-1 border-gray-700" />
+        </div>
+
+        {/* Social Icons */}
+        <div className="flex justify-evenly gap-6 text-2xl text-gray-400">
+          <FaFacebook className="cursor-pointer hover:text-blue-600" />
+          <FaGoogle className="cursor-pointer hover:text-red-500" />
+          <FaApple className="cursor-pointer hover:text-white" />
+        </div>
+
+        {/* Sign Up */}
+        <div className="mt-6 text-center text-sm text-gray-400">
+          Don&apos;t have an account?{" "}
+          <span
+            onClick={() => navigate("/login")}
+            className="text-blue-500 hover:underline cursor-pointer"
+          >
+            Login
+          </span>
+        </div>
+
+        {/* Get the App */}
+        <div className="mt-8 text-center">
+          <p className="text-gray-400 mb-2">Get the App</p>
+          <div className="flex justify-center gap-4">
+            <img
+              src={Google}
+              alt="Google Play"
+              className="w-28 md:w-32 h-10 cursor-pointer hover:scale-105 transition"
             />
-            <input
-              type="text"
-              name="email"
-              onChange={handleChange}
-              placeholder="email"
-              value={userFormData.email}
-              className="w-full p-3 rounded-lg bg-white text-gray-900 focus:ring focus:ring-blue-500"
+            <img
+              src={Microsoft}
+              alt="Microsoft Store"
+              className="w-28 md:w-32 h-10 cursor-pointer hover:scale-105 transition"
             />
-            <input
-              type="password"
-              name="password"
-              onChange={handleChange}
-              placeholder="password"
-              value={userFormData.password}
-              className="w-full p-3 rounded-lg bg-white text-gray-900 focus:ring focus:ring-blue-500"
-            />
-            <button
-              className="w-full py-3 bg-blue-500 hover:bg-blue-600 rounded-lg font-bold"
-              type="submit"
-            >
-              Sign Up
-            </button>
-          </form>
-          <div className="flex items-center my-4">
-            <hr className="flex-1 border-gray-700" />
-            <span className="px-2 border-gray-500">OR</span>
-            <hr className="flex-1 border-gray-700" />
-          </div>
-          <div className="py-3 rounded-lg flex flex-row items-center justify-evenly space-x-2 ">
-            <FaFacebook className="text-3x1 cursor-pointer" />
-            <FaGoogle className="text-3x1 cursor-pointer" />
-            <FaApple className="text-3x1 cursor-pointer" />
-          </div>
-          <div className="mt-4 text-gray-400 rounded-lg text-center p-4">
-            Already Have an Account?{" "}
-            <span
-              onClick={() => navigate("/login")}
-              className="text-blue-600 hover:underline cursor-pointer"
-            >
-              Sign In
-            </span>
           </div>
         </div>
       </div>
