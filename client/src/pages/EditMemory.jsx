@@ -14,33 +14,42 @@ const EditMemory = () => {
   // Load existing memory
   useEffect(() => {
     const fetchMemory = async () => {
-      const res = await axios.get(`${backendUrl}/api/users/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const m = res.data.memory || {};
-      setLikes((m.likes || []).join(", "));
-      setDislikes((m.dislikes || []).join(", "));
-      setFavoriteTopics((m.favoriteTopics || []).join(", "));
-      setPartnerName(m.partnerName || "Senpai");
+      try {
+        const res = await axios.get(`${backendUrl}/api/users/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const m = res.data.memory || {};
+        setLikes((m.likes || []).join(", "));
+        setDislikes((m.dislikes || []).join(", "));
+        setFavoriteTopics((m.favoriteTopics || []).join(", "));
+        setPartnerName(m.partnerName || "Senpai");
+      } catch (err) {
+        console.error("Failed to load memory:", err);
+      }
     };
-    fetchMemory();
+    if (token) fetchMemory();
   }, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await axios.put(
-      `${backendUrl}/api/users/memory`,
-      {
-        likes: likes.split(",").map((s) => s.trim()),
-        dislikes: dislikes.split(",").map((s) => s.trim()),
-        favoriteTopics: favoriteTopics.split(",").map((s) => s.trim()),
-        partnerName,
-      },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    navigate("/chats");
+    try {
+      await axios.put(
+        `${backendUrl}/api/users/memory`,
+        {
+          likes: likes.split(",").map((s) => s.trim()),
+          dislikes: dislikes.split(",").map((s) => s.trim()),
+          favoriteTopics: favoriteTopics.split(",").map((s) => s.trim()),
+          partnerName,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      navigate("/chats");
+    } catch (err) {
+      console.error("Failed to update memory:", err);
+      // Optionally show toast or alert here
+    }
   };
 
   return (

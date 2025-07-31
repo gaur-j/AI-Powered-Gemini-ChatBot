@@ -27,7 +27,15 @@ const SelectPersona = () => {
         { personality: selected },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setUser((prev) => ({ ...prev, personality: selected }));
+      const res = await axios.get(`${backendUrl}/api/users/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(res.data);
+      if (res.data.hasEditedMemory) {
+        navigate("/chats");
+      } else {
+        navigate("/edit-memory");
+      }
       navigate("/chats");
     } catch (error) {
       console.error("Error saving personality:", error);

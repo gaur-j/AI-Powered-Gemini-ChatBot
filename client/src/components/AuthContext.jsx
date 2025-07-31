@@ -38,15 +38,20 @@ const AuthContextProvider = ({ children }) => {
         setToken(res.data.token);
         setUser(res.data.user);
         toast.success("Registered successfully!");
+
+        // 🚨 Check for personality and memory before allowing access to chats
         if (!res.data.user.personality) {
           navigate("/select-persona");
+        } else if (!res.data.user.hasEditedMemory) {
+          navigate("/edit-memory");
         } else {
           navigate("/chats");
         }
       }
     } catch (err) {
       console.log(err);
-      toast.error("Register failed");
+      const message = err.response?.data?.message || "Register failed";
+      toast.error(message);
     }
   };
 
@@ -56,13 +61,18 @@ const AuthContextProvider = ({ children }) => {
         email,
         password,
       });
+
       if (res.data.token) {
         cookie.set("token", res.data.token, { expires: 7 });
         setToken(res.data.token);
         setUser(res.data.user);
         toast.success("Login successful!");
+
+        // 🚨 Follow the same gated flow
         if (!res.data.user.personality) {
           navigate("/select-persona");
+        } else if (!res.data.user.hasEditedMemory) {
+          navigate("/edit-memory");
         } else {
           navigate("/chats");
         }
@@ -75,7 +85,7 @@ const AuthContextProvider = ({ children }) => {
 
   const logout = () => {
     cookie.remove("token");
-    setToken(false);
+    setToken(null);
     setUser(null);
     toast.success("Logged out");
     navigate("/");

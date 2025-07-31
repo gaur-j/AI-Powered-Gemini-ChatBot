@@ -48,16 +48,17 @@ const Register = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
-            name="email"
+            name="username"
             value={userFormData.username}
             onChange={handleChange}
-            placeholder="Username, Email or Phone"
+            placeholder="Username"
             className="w-full p-3 rounded bg-[#2a2b2e] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
           <input
             type="text"
             name="email"
             value={userFormData.email}
+            onChange={handleChange}
             placeholder="email"
             className="w-full p-3 rounded bg-[#2a2b2e] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
