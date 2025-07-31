@@ -13,6 +13,7 @@ Talk to your custom AI Girlfriend with unique personalities — flirty, yandere,
 ---
 ## 📌 Table of Contents
 
+- [📝 About](#-about)
 - [✨ Features](#-features)
 - [📸 Screenshots](#-screenshots)
 - [🛠 Tech Stack](#-tech-stack)
@@ -20,6 +21,17 @@ Talk to your custom AI Girlfriend with unique personalities — flirty, yandere,
 - [💻 Local Setup](#-local-setup)
 - [📜 License](#-license)
 - [👤 Author](#-author)
+
+---
+
+## 📝 About
+
+**AI Girlfriend Chatbot** is a MERN + Gemini 2.0 powered web app where users can talk to personalized AI girlfriends. Each AI responds in its own style — from cute and caring to sarcastic and dangerous — based on the personality selected.
+
+Built with real-time chat, memory, voice input, and AI-driven replies, the app simulates a dynamic conversational experience with:
+- 🎭 Emotion-based personalities (yandere, flirty, toxic, nerdy)
+- 🧠 Context-aware memory
+- 🎤 Voice interaction and TTS
 
 ---
 
