@@ -1,3 +1,4 @@
+// ChatBox.jsx
 import { useEffect, useState, useRef, useContext } from "react";
 import { AuthContext } from "../components/AuthContext.jsx";
 import axios from "axios";
@@ -23,22 +24,17 @@ const ChatBox = () => {
     window.SpeechRecognition || window.webkitSpeechRecognition;
   const recognition = SpeechRecognition ? new SpeechRecognition() : null;
 
-  // Text-to-speech
+  // TTS
   const speakText = (text) => {
     if (!ttsEnabled || !text) return;
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "en-US";
-    utterance.voice = chooseVoice(user?.personality);
+    utterance.voice =
+      voices.find((v) => v.name.toLowerCase().includes("female")) || voices[0];
     speechSynthesis.speak(utterance);
   };
 
-  const chooseVoice = (personality) => {
-    const lower = (s) => s?.toLowerCase();
-    if (!voices.length) return null;
-    return voices.find((v) => lower(v.name).includes("female")) || voices[0];
-  };
-
-  // Speech recognition
+  // Voice input
   const startVoiceInput = () => {
     if (!recognition) return alert("Speech recognition not supported.");
     setListening(true);
@@ -53,10 +49,7 @@ const ChatBox = () => {
       stopVoiceInput();
     };
 
-    recognition.onerror = (e) => {
-      console.error("Speech error:", e.error);
-      stopVoiceInput();
-    };
+    recognition.onerror = () => stopVoiceInput();
   };
 
   const stopVoiceInput = () => {
@@ -65,44 +58,51 @@ const ChatBox = () => {
     recognition?.stop();
   };
 
-  // Load voices
   useEffect(() => {
-    const loadVoices = () => {
-      setVoices(window.speechSynthesis.getVoices());
-    };
+    const loadVoices = () => setVoices(window.speechSynthesis.getVoices());
     window.speechSynthesis.onvoiceschanged = loadVoices;
     loadVoices();
   }, []);
 
-  // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Fetch history
-  const fetchHistory = async () => {
-    try {
-      const res = await axios.get(`${backendUrl}/api/chats/history`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const withDates = res.data.map((msg) => ({
-        ...msg,
-        timestamp: new Date(msg.timeStamp),
-      }));
-      setMessages(withDates);
-    } catch (err) {
-      console.error("Chat history load error:", err);
-    }
-  };
-
+  // ✅ Check user profile before chat
   useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const res = await axios.get(`${backendUrl}/api/users/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const u = res.data;
+        if (!u.personality) navigate("/select-persona");
+        else if (!u.memory || !u.memory.partnerName) navigate("/edit-memory");
+      } catch (err) {
+        navigate("/login");
+      }
+    };
+    checkUser();
+  }, [backendUrl, token, navigate]);
+
+  // Fetch chat history
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const res = await axios.get(`${backendUrl}/api/chats/history`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setMessages(
+          res.data.map((m) => ({ ...m, timestamp: new Date(m.timeStamp) }))
+        );
+      } catch (err) {
+        console.error("History error", err);
+      }
+    };
     fetchHistory();
   }, []);
 
-  useEffect(() => {
-    if (user && !user.personality) navigate("/select-persona");
-  }, [user]);
-
+  // ✅ Send message (no personality here anymore)
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -115,45 +115,35 @@ const ChatBox = () => {
     try {
       const res = await axios.post(
         `${backendUrl}/api/chats`,
-        { message: input, personality: user?.personality || "flirty" },
+        { message: userMsg.text },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const aiMsg = { from: "ai", text: res.data.reply, timestamp: new Date() };
       setMessages((prev) => [...prev, aiMsg]);
       speakText(res.data.reply);
     } catch (err) {
-      console.error("Chat error:", err);
       setMessages((prev) => [
         ...prev,
-        { from: "ai", text: "Something went wrong.", timestamp: new Date() },
+        { from: "ai", text: "⚠️ Chat failed", timestamp: new Date() },
       ]);
     } finally {
       setLoading(false);
     }
   };
 
-  const formatTime = (date) =>
-    new Date(date).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white">
       {/* Header */}
-      <div className="w-full p-3 flex items-center justify-between bg-black/50 backdrop-blur border-b border-gray-700">
+      <div className="w-full p-3 flex justify-between items-center bg-black/50 border-b border-gray-700">
         <h1 className="text-lg font-semibold">
           Chat with {user?.personality || "AI"}
         </h1>
-        <label className="text-sm flex items-center gap-2">
-          🔊 Voice
-          <input
-            type="checkbox"
-            checked={ttsEnabled}
-            onChange={() => setTtsEnabled((v) => !v)}
-            aria-label="Toggle TTS"
-          />
-        </label>
+        <button
+          onClick={() => navigate("/edit-memory")}
+          className="bg-pink-600 hover:bg-pink-700 px-3 py-1 rounded text-sm"
+        >
+          Edit Preferences
+        </button>
       </div>
 
       {/* Messages */}
@@ -161,7 +151,7 @@ const ChatBox = () => {
         {messages.map((msg, idx) => (
           <div
             key={idx}
-            className={`flex items-end gap-2 ${
+            className={`flex ${
               msg.from === "user" ? "justify-end" : "justify-start"
             }`}
           >
@@ -173,78 +163,48 @@ const ChatBox = () => {
               />
             )}
             <div
-              className={`max-w-[75%] px-4 py-2 rounded-xl text-sm break-words shadow ${
+              className={`max-w-[75%] px-4 py-2 rounded-xl shadow text-sm break-words ${
                 msg.from === "user"
-                  ? "bg-blue-600 text-white rounded-br-none"
-                  : "bg-gray-200 text-black rounded-bl-none"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-black"
               }`}
             >
               {msg.text}
-              <div
-                className={`text-xs text-right mt-1 ${
-                  msg.from === "user" ? "text-white/70" : "text-gray-500"
-                }`}
-              >
-                {formatTime(msg.timestamp)}
+              <div className="text-xs mt-1 text-right opacity-70">
+                {new Date(msg.timestamp).toLocaleTimeString()}
               </div>
             </div>
-            {msg.from === "user" && (
-              <div className="w-8 h-8 rounded-full bg-blue-500 text-center flex items-center justify-center text-white">
-                🧑
-              </div>
-            )}
           </div>
         ))}
-
         {loading && (
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <div className="w-8 h-8 rounded-full bg-pink-200 text-center text-xl">
-              🤖
-            </div>
-            <div className="flex gap-1">
-              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-150" />
-              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-300" />
-            </div>
-          </div>
+          <p className="text-gray-400 italic">AI girlfriend typing…</p>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input bar */}
+      {/* Input */}
       <form
         onSubmit={sendMessage}
-        className="sticky bottom-0 w-full bg-black/60 backdrop-blur-md border-t border-gray-700 p-3 flex items-center gap-2"
+        className="p-3 flex gap-2 bg-black/60 border-t border-gray-700"
       >
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          className="flex-1 px-3 py-2 rounded bg-gray-100 text-black"
           placeholder="Type your message..."
-          className="flex-1 px-4 py-2 rounded-lg bg-gray-100 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <button
-          type="submit"
-          className="bg-blue-600 hover:bg-blue-700 p-2 rounded text-white"
-          aria-label="Send"
-        >
+        <button type="submit" className="bg-blue-600 p-2 rounded text-white">
           <IoSend size={20} />
         </button>
-        <button
-          type="button"
-          onClick={startVoiceInput}
-          className="text-white text-xl px-2"
-          aria-label="Start voice input"
-        >
+        <button type="button" onClick={startVoiceInput} className="text-xl">
           <IoMic />
         </button>
       </form>
 
-      {/* Mic listening bar */}
       {listening && (
-        <div className="bg-blue-100 text-blue-800 text-sm p-2 text-center flex justify-center items-center gap-2">
-          <span className="animate-ping w-2 h-2 bg-blue-600 rounded-full"></span>
+        <div className="bg-blue-200 text-blue-900 text-sm p-2 flex justify-center items-center gap-2">
           Listening... {micTimer}s
-          <button onClick={stopVoiceInput} className="ml-4 text-red-600">
+          <button onClick={stopVoiceInput} className="ml-2 text-red-600">
             <IoStop />
           </button>
         </div>

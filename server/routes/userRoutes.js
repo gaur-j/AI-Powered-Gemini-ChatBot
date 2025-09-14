@@ -21,22 +21,18 @@ router.get("/me", protect, async (req, res) => {
 // Update memory & mark as edited
 router.put("/memory", protect, async (req, res) => {
   const { likes, dislikes, favoriteTopics, partnerName } = req.body;
+  const user = await User.findById(req.user.id);
 
-  const update = {
-    "memory.likes": likes || [],
-    "memory.dislikes": dislikes || [],
-    "memory.favoriteTopics": favoriteTopics || [],
-    "memory.partnerName": partnerName || "Senpai",
-    hasEditedMemory: true,
+  user.memory = {
+    likes: likes || [],
+    dislikes: dislikes || [],
+    favoriteTopics: favoriteTopics || [],
+    partnerName: partnerName || "Senpai",
   };
+  user.hasEditedMemory = true; // ✅ always allow updating
+  await user.save();
 
-  const updatedUser = await User.findByIdAndUpdate(
-    req.user.id,
-    { $set: update },
-    { new: true } // returns updated user
-  ).select("-password");
-
-  res.json(updatedUser); // ✅ returns updated user
+  res.json({ message: "Memory updated", memory: user.memory });
 });
 
 // Update personality
