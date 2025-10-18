@@ -114,7 +114,7 @@ const ChatBox = () => {
 
     try {
       const res = await axios.post(
-        `${backendUrl}/api/chat`,
+        `${backendUrl}/api/chats`,
         { message: userMsg.text },
         { headers: { Authorization: `Bearer ${token}` } }
       );
