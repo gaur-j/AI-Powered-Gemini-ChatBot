@@ -53,7 +53,7 @@ Now respond naturally to the user’s message:
     `;
 
     // Call Gemini
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const result = await model.generateContent(prompt);
     const reply = (await result.response).text();
 
